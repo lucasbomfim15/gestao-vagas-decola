@@ -31,14 +31,14 @@ public class JobController {
         // Obtém o company_id como String
         String companyId = (String) request.getAttribute("company_id");
 
-        System.out.println("Company ID from request: " + companyId); // Log para depuração
+
 
         if (companyId == null || companyId.isEmpty()) {
             throw new IllegalArgumentException("Company ID not found in token");
         }
 
         try {
-            // Converte a string para UUID
+
             UUID companyUUID = UUID.fromString(companyId);
             jobEntity.setCompanyId(companyUUID);
             return this.createJobUseCase.execute(jobEntity);

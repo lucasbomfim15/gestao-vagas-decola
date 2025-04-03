@@ -27,6 +27,12 @@ public class SecurityConfig {
     @Autowired
     SecurityCandidateFilter securityCandidateFilter;
 
+    private static final String[] SWAGGER_LIST = {
+            "swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-resources/**",
+    };
+
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,7 +44,8 @@ public class SecurityConfig {
                             .requestMatchers("/candidate/auth").permitAll()// Permite todas as rotas em /auth
                             .requestMatchers("/candidate/**").permitAll()
                             .requestMatchers("/company/auth").permitAll()
-                            .requestMatchers("/job/**").permitAll();
+                            .requestMatchers("/job/**").permitAll()
+                            .requestMatchers(SWAGGER_LIST).permitAll();
                     auth.anyRequest().authenticated();
                 }).addFilterBefore(securityCandidateFilter, BasicAuthenticationFilter.class)
                 .addFilterBefore(securityFilter, BasicAuthenticationFilter.class);
