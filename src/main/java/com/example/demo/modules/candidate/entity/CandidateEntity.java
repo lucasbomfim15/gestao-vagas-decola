@@ -1,5 +1,6 @@
 package com.example.demo.modules.candidate.entity;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,18 +22,26 @@ public class CandidateEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Schema(example = "Lucas Bomfim")
     private String name;
 
     @Pattern(regexp = "\\S+", message = "this field not must be space beetween lines")
+    @Schema(example = "lucas")
     private String username;
 
     @Length(min = 3, max = 100)
+    @Schema(example = "candidate@123" )
     private String password;
 
     @Email(message = "this field must be valid email")
+    @Schema(example = "lucas@gmail.com")
     private String email;
+
     private String phone;
+
     private String curriculum;
+
     private String description;
 
     @CreationTimestamp
