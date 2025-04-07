@@ -1,0 +1,9 @@
+package com.example.demo.modules.candidate.repository;
+
+import com.example.demo.modules.candidate.entity.AplyJobEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.UUID;
+
+public interface AplyJobRepository extends JpaRepository<AplyJobEntity, UUID> {
+}

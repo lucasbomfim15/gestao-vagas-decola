@@ -1,12 +1,11 @@
 package com.example.demo.modules.candidate.controllers;
 
 import com.example.demo.modules.candidate.dtos.ProfileCanididateResponseDTO;
+import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
-import com.example.demo.modules.candidate.useCases.CreateCandidateUseCase;
-import com.example.demo.modules.candidate.useCases.ListAllJobsByFilterUseCase;
-import com.example.demo.modules.candidate.useCases.ProfileCandidateUseCase;
+import com.example.demo.modules.candidate.useCases.*;
 import com.example.demo.modules.company.entity.JobEntity;
 import com.example.demo.modules.company.repository.JobRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +39,13 @@ public class CandidateController {
 
     @Autowired
     private ListAllJobsByFilterUseCase listAllJobsByFilterUseCase;
+
+    @Autowired
+    private UpdateCandidateUseCase updateCandidateUseCase;
+
+    @Autowired
+    private AplyJobCandidateUseCase aplyJobCandidateUseCase;
+
 
 
     @PostMapping("/")
@@ -98,6 +104,45 @@ public class CandidateController {
     @SecurityRequirement(name = "jwt_auth")
     public List<JobEntity> findJobByFilter(@RequestParam String filter) {
         return this.listAllJobsByFilterUseCase.execute(filter);
+    }
+
+    @PutMapping("/")
+    @PreAuthorize("hasRole('candidate')")
+    @Operation(summary = "Update candidate profile", description = "Allows the authenticated candidate to update their profile.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile updated successfully", content = {
+                    @Content(schema = @Schema(implementation = CandidateEntity.class))
+            }),
+            @ApiResponse(responseCode = "400", description = "Invalid data or user not authenticated")
+    })
+    @SecurityRequirement(name = "jwt_auth")
+    public ResponseEntity<Object> update(@Valid @RequestBody UpdateCandidateDTO dto) {
+        try {
+            var result = this.updateCandidateUseCase.execute(dto);
+            return ResponseEntity.ok().body(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    
+
+    @PostMapping("/job/apply")
+    @PreAuthorize("hasRole('candidate')")
+    @Operation(summary = "registration of a candidate for a vacancy\n", description = "registration of a candidate for a vacancy\n")
+    @SecurityRequirement(name = "jwt_auth")
+    public ResponseEntity<Object> applyJob(HttpServletRequest req, @RequestBody UUID idJob ) {
+
+        var idCandidate = req.getAttribute("candidate_id");
+
+       try{
+           var result =  this.aplyJobCandidateUseCase.execute(UUID.fromString(idCandidate.toString()), idJob);
+           return ResponseEntity.ok().body(result);
+       } catch(Exception e){
+           return ResponseEntity.badRequest().body(e.getMessage());
+       }
+
+
     }
 
 
