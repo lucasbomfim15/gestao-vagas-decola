@@ -37,12 +37,10 @@ public class CompanyController {
             @ApiResponse(responseCode = "400", description = "Company already exists:")
     })
     public ResponseEntity<Object> createCompany (@Valid  @RequestBody CompanyEntity companyEntity) {
-        try{
+
             var result = this.createCompanyUseCase.execute(companyEntity);
             return ResponseEntity.ok().body(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
 
 }

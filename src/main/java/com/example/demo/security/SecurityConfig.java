@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     @Autowired
-    private SecurityFilter securityFilter;
+    private SecurityCompanyFilter securityFilter;
 
     @Autowired
     SecurityCandidateFilter securityCandidateFilter;
@@ -42,9 +42,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/auth/**").permitAll()
                             .requestMatchers("/candidate/auth").permitAll()// Permite todas as rotas em /auth
-                            .requestMatchers("/candidate/**").permitAll()
+                            .requestMatchers("/candidate/").permitAll()
+                            .requestMatchers("/company/").permitAll()
                             .requestMatchers("/company/auth").permitAll()
-                            .requestMatchers("/job/**").permitAll()
                             .requestMatchers(SWAGGER_LIST).permitAll();
                     auth.anyRequest().authenticated();
                 }).addFilterBefore(securityCandidateFilter, BasicAuthenticationFilter.class)
@@ -56,10 +56,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*")); // Ou especifique seus domínios
+        configuration.setAllowedOrigins(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false); // Se usar credenciais, defina como true
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -23,10 +23,11 @@ public class UpdateCandidateUseCase {
         // Obtendo o usuário autenticado corretamente
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        System.out.println("Username autenticado: " + principal);
+        String authenticatedUsername = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+
 
         // Buscar candidato autenticado
-        CandidateEntity candidate = candidateRepository.findByUsername(dto.getUsername())
+        CandidateEntity candidate = candidateRepository.findByUsername(authenticatedUsername)
                 .orElseThrow(() -> {
                     System.out.println("Candidato não encontrado no banco com username: " + principal);
                     return new UserNotFoundException();

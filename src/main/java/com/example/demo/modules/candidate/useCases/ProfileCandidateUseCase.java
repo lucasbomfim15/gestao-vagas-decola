@@ -2,8 +2,10 @@ package com.example.demo.modules.candidate.useCases;
 
 
 import com.example.demo.modules.candidate.dtos.ProfileCanididateResponseDTO;
+import com.example.demo.modules.candidate.exceptions.UserNotFoundException;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -17,7 +19,7 @@ public class ProfileCandidateUseCase {
 
     public ProfileCanididateResponseDTO execute(UUID idCandidate) {
 
-       var candidate = this.candidateRepository.findById(idCandidate).orElseThrow(() -> new RuntimeException("candidate not found"));
+       var candidate = this.candidateRepository.findById(idCandidate).orElseThrow(() -> new UserNotFoundException());
         var candidateDto = ProfileCanididateResponseDTO.builder()
                 .description(candidate.getDescription())
                 .username(candidate.getUsername())

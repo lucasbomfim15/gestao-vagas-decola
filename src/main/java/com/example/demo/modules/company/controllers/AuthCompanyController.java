@@ -39,14 +39,10 @@ public class AuthCompanyController {
             @ApiResponse(responseCode = "400", description = "Company not found")
     })
     public ResponseEntity<?> create(@RequestBody AuthCompanyDTO authCompanyDTO) {
-        try {
+
             var token = this.authCompanyUseCase.execute(authCompanyDTO);
             return ResponseEntity.ok(token);
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+
     }
 
 

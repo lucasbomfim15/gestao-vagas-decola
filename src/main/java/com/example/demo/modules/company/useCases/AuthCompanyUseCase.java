@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
 import com.example.demo.modules.company.dto.AuthCompanyDTO;
 import com.example.demo.modules.company.dto.AuthCompanyResponseDTO;
+import com.example.demo.modules.company.exceptions.InvalidCredentialsException;
 import com.example.demo.modules.company.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,9 +40,11 @@ public class AuthCompanyUseCase {
         Boolean passwordMatches = this.passwordEncoder.matches(authCompanyDTO.getPassword(), company.getPassword());
 
         if (!passwordMatches) {
-            throw new RuntimeException("Invalid credentials");  // Alterado para RuntimeException
+            throw new InvalidCredentialsException();
         }
 
+
+        //criação do token jwt.
         Algorithm algorithm = Algorithm.HMAC256(secretKey);
 
         var expiresin = Instant.now().plus(Duration.ofHours(2));

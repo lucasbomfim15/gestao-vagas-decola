@@ -37,11 +37,9 @@ public class AuthCandidateController {
             @ApiResponse(responseCode = "400", description = "User already exists:")
     })
     public ResponseEntity<Object> auth(@RequestBody AuthCandidateRequestDTO authCandidateRequestDTO) {
-        try {
+
             var token = this.authCandidateUseCase.execute(authCandidateRequestDTO);
             return ResponseEntity.ok().body(token);
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+
     }
 }

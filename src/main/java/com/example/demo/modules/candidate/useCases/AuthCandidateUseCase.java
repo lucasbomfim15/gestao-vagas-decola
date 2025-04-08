@@ -7,6 +7,7 @@ import com.example.demo.modules.candidate.dtos.AuthCandidateResponseDTO;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,12 +38,8 @@ public class AuthCandidateUseCase {
 
 
         if(!passwordMatches) {
-            throw new AuthenticationException("Password incorrect") {
-                @Override
-                public String getMessage() {
-                    return super.getMessage();
-                }
-            };
+            throw new BadCredentialsException("Username/password incorrect");
+
         }
 
 

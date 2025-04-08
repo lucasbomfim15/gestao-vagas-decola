@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +46,7 @@ public class JobController {
             @ApiResponse(responseCode = "400", description = "Invalid input or Company ID not found/invalid")
     })
     @SecurityRequirement(name = "jwt_auth")
-    public JobEntity createJob(@Valid @RequestBody CreateJobRequestDTO jobRequest, HttpServletRequest request) {
+    public ResponseEntity<Object> createJob(@Valid @RequestBody CreateJobRequestDTO jobRequest, HttpServletRequest request) {
 
         String companyId = (String) request.getAttribute("company_id");
 
@@ -53,9 +54,7 @@ public class JobController {
             throw new IllegalArgumentException("Company ID not found in token");
         }
 
-        try {
             UUID companyUUID = UUID.fromString(companyId);
-
 
             JobEntity jobEntity = new JobEntity();
             jobEntity.setDescription(jobRequest.getDescription());
@@ -63,9 +62,8 @@ public class JobController {
             jobEntity.setLevel(jobRequest.getLevel());
             jobEntity.setCompanyId(companyUUID);
 
-            return this.createJobUseCase.execute(jobEntity);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid Company ID format: " + companyId);
-        }
+            var result = this.createJobUseCase.execute(jobEntity);
+           return ResponseEntity.ok().body(result);
+
     }
 }

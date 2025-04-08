@@ -59,13 +59,11 @@ public class CandidateController {
             }),
             @ApiResponse(responseCode = "400", description = "User already exists:")
     })
-    public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidate) throws Exception {
-        try{
+    public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidate) {
+
             var result =  this.createCandidateUseCase.execute(candidate);
             return ResponseEntity.ok().body(result);
-        } catch(Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
 
     }
 
@@ -82,13 +80,11 @@ public class CandidateController {
     @SecurityRequirement(name = "jwt_auth")
     public ResponseEntity<Object> get(HttpServletRequest req) {
 
-        var idCandidate = req.getAttribute("candidate_id");
-       try{
+            var idCandidate = req.getAttribute("candidate_id");
+
            var profile = this.profileCandidateUseCase.execute(UUID.fromString(idCandidate.toString()));
            return ResponseEntity.ok().body(profile);
-       } catch(Exception e){
-           return ResponseEntity.badRequest().body(e.getMessage());
-       }
+
     }
 
     @GetMapping("/job")
@@ -117,12 +113,10 @@ public class CandidateController {
     })
     @SecurityRequirement(name = "jwt_auth")
     public ResponseEntity<Object> update(@Valid @RequestBody UpdateCandidateDTO dto) {
-        try {
+
             var result = this.updateCandidateUseCase.execute(dto);
             return ResponseEntity.ok().body(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
     
     
@@ -135,12 +129,10 @@ public class CandidateController {
 
         var idCandidate = req.getAttribute("candidate_id");
 
-       try{
-           var result =  this.aplyJobCandidateUseCase.execute(UUID.fromString(idCandidate.toString()), idJob);
-           return ResponseEntity.ok().body(result);
-       } catch(Exception e){
-           return ResponseEntity.badRequest().body(e.getMessage());
-       }
+
+        var result =  this.aplyJobCandidateUseCase.execute(UUID.fromString(idCandidate.toString()), idJob);
+        return ResponseEntity.ok().body(result);
+
 
 
     }
