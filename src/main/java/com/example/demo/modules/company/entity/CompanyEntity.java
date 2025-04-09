@@ -1,5 +1,6 @@
 package com.example.demo.modules.company.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -38,6 +39,7 @@ public class CompanyEntity {
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<JobEntity> jobs = new ArrayList<>();
 
 

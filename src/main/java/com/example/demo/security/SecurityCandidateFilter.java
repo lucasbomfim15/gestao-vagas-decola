@@ -25,32 +25,43 @@ public class SecurityCandidateFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-//        SecurityContextHolder.getContext().setAuthentication(null);
-        String header =  request.getHeader("Authorization");
-
-        if(request.getRequestURI().startsWith("/candidate")){
-            if(header != null){
-                var token = this.jwtCandidateProvider.validateToken(header);
-
-                if(token == null){
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
-
-                request.setAttribute("candidate_id", token.getSubject());
-                var roles = token.getClaim("roles").asList(Object.class);
-
-                var grants = roles.stream().map(
-                        role -> new SimpleGrantedAuthority("ROLE_" + role.toString())
-                ).toList();
-
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        token.getSubject(), null, grants);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+        // Se não for uma rota de candidate, passa adiante
+        if(!request.getRequestURI().startsWith("/candidate")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
+        String header = request.getHeader("Authorization");
 
+        // Se não tiver header de autorização, retorna 401
+        if(header == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
+        try {
+            var token = this.jwtCandidateProvider.validateToken(header);
+
+            if(token == null) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return;
+            }
+
+            request.setAttribute("candidate_id", token.getSubject());
+            var roles = token.getClaim("roles").asList(Object.class);
+
+            var grants = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toString().toUpperCase()))
+                    .toList();
+
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    token.getSubject(), null, grants);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
 
         filterChain.doFilter(request, response);
     }

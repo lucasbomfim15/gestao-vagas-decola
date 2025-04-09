@@ -1,5 +1,6 @@
 package com.example.demo.modules.candidate.controllers;
 
+import com.example.demo.modules.candidate.dtos.ApplyJobRequestDTO;
 import com.example.demo.modules.candidate.dtos.ProfileCanididateResponseDTO;
 import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
@@ -49,7 +50,6 @@ public class CandidateController {
 
 
     @PostMapping("/")
-    @PreAuthorize("hasRole('candidate')")
     @Operation(summary = "Candidate Registration", description = "this function is responsible for register user ")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {
@@ -88,7 +88,7 @@ public class CandidateController {
     }
 
     @GetMapping("/job")
-    @PreAuthorize("hasRole('candidate')")
+    @PreAuthorize("hasRole('CANDIDATE')")
     @Operation(summary = "List of vacancies available to the candidate", description = "List of available vacancies that the candidate can apply for\n")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = {
@@ -103,7 +103,7 @@ public class CandidateController {
     }
 
     @PutMapping("/")
-    @PreAuthorize("hasRole('candidate')")
+    @PreAuthorize("hasRole('CANDIDATE')")
     @Operation(summary = "Update candidate profile", description = "Allows the authenticated candidate to update their profile.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Profile updated successfully", content = {
@@ -122,10 +122,11 @@ public class CandidateController {
     
 
     @PostMapping("/job/apply")
-    @PreAuthorize("hasRole('candidate')")
+    @PreAuthorize("hasRole('CANDIDATE')")
     @Operation(summary = "registration of a candidate for a vacancy\n", description = "registration of a candidate for a vacancy\n")
     @SecurityRequirement(name = "jwt_auth")
-    public ResponseEntity<Object> applyJob(HttpServletRequest req, @RequestBody UUID idJob ) {
+    public ResponseEntity<Object> applyJob(HttpServletRequest req, @RequestBody ApplyJobRequestDTO body ) {
+        UUID idJob = body.getJobId();
 
         var idCandidate = req.getAttribute("candidate_id");
 
