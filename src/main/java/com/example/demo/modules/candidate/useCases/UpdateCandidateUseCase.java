@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class UpdateCandidateUseCase {
 
@@ -20,16 +22,14 @@ public class UpdateCandidateUseCase {
     private PasswordEncoder passwordEncoder;
 
     public CandidateEntity execute(UpdateCandidateDTO dto) {
-        // Obtendo o usuário autenticado corretamente
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        String authenticatedUsername = ((UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUsername();
+        // Se o principal for String (como no teste), ele é o ID
+        String candidateId = (String) principal;
 
-
-        // Buscar candidato autenticado
-        CandidateEntity candidate = candidateRepository.findByUsername(authenticatedUsername)
+        CandidateEntity candidate = candidateRepository.findById(UUID.fromString(candidateId))
                 .orElseThrow(() -> {
-                    System.out.println("Candidato não encontrado no banco com username: " + principal);
+                    System.out.println("Candidato não encontrado no banco com id: " + candidateId);
                     return new UserNotFoundException();
                 });
 

@@ -49,4 +49,8 @@ public class TestUtils {
                 .sign(algorithm);
     }
 
+    public static String extractTokenFromJson(String json) throws JsonProcessingException {
+        return mapper.readTree(json).get("token").asText();
+    }
+
 }

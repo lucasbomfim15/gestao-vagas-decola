@@ -10,7 +10,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,17 +23,26 @@ public class SecurityCandidateFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
 
-        // Se não for uma rota de candidate, passa adiante
-        if(!request.getRequestURI().startsWith("/candidate")) {
+        // Permite rotas públicas
+        boolean isAuthRoute = path.equals("/candidate/auth") && method.equals("POST");
+        boolean isCreateCandidateRoute = path.equals("/candidate/") && method.equals("POST");
+
+        if (isAuthRoute || isCreateCandidateRoute) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (!path.startsWith("/candidate")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String header = request.getHeader("Authorization");
 
-        // Se não tiver header de autorização, retorna 401
-        if(header == null) {
+        if (header == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
@@ -42,7 +50,7 @@ public class SecurityCandidateFilter extends OncePerRequestFilter {
         try {
             var token = this.jwtCandidateProvider.validateToken(header);
 
-            if(token == null) {
+            if (token == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return;
             }
