@@ -1,8 +1,6 @@
 package com.example.demo.modules.candidate.controllers;
 
-import com.example.demo.modules.candidate.dtos.ApplyJobRequestDTO;
-import com.example.demo.modules.candidate.dtos.ProfileCanididateResponseDTO;
-import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
+import com.example.demo.modules.candidate.dtos.*;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
@@ -59,7 +57,7 @@ public class CandidateController {
             }),
             @ApiResponse(responseCode = "400", description = "User already exists:")
     })
-    public ResponseEntity<Object> create(@Valid @RequestBody CandidateEntity candidate) {
+    public ResponseEntity<CreateCandidateResponseDTO> create(@Valid @RequestBody CreateCandidateRequestDTO candidate) {
 
             var result =  this.createCandidateUseCase.execute(candidate);
             return ResponseEntity.ok().body(result);

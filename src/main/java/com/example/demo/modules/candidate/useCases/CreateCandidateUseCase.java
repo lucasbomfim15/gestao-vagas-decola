@@ -1,7 +1,10 @@
 package com.example.demo.modules.candidate.useCases;
 
+import com.example.demo.modules.candidate.dtos.CreateCandidateRequestDTO;
+import com.example.demo.modules.candidate.dtos.CreateCandidateResponseDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
+import com.example.demo.modules.candidate.mappers.CandidateMapper;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,16 +22,19 @@ public class CreateCandidateUseCase {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public CandidateEntity execute(CandidateEntity candidate) {
-        this.candidateRepository.findByEmailOrUsername(candidate.getEmail(), candidate.getUsername()).ifPresent((user) -> {
+    public CreateCandidateResponseDTO execute(CreateCandidateRequestDTO createCandidateRequestDTO) {
+        this.candidateRepository.findByEmailOrUsername(createCandidateRequestDTO.getEmail(), createCandidateRequestDTO.getUsername()).ifPresent((user) -> {
             throw new UserFoundException();
         });
 
-        var password =  passwordEncoder.encode(candidate.getPassword());
+        var password =  passwordEncoder.encode(createCandidateRequestDTO.getPassword());
 
-        candidate.setPassword(password);
+        var candidate = CandidateMapper.toEntity(createCandidateRequestDTO, password);
 
-        return this.candidateRepository.save(candidate);
+        var savedCandidate = this.candidateRepository.save(candidate);
+
+        return CandidateMapper.toResponseDTO(savedCandidate);
+
 
     }
 }

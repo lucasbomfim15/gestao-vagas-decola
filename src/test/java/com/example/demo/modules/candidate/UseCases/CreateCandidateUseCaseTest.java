@@ -1,5 +1,7 @@
 package com.example.demo.modules.candidate.UseCases;
 
+import com.example.demo.modules.candidate.dtos.CreateCandidateRequestDTO;
+import com.example.demo.modules.candidate.dtos.CreateCandidateResponseDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
@@ -13,8 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,59 +34,85 @@ public class CreateCandidateUseCaseTest {
 
     @Test
     public void shouldCreateCandidateSuccessfully() {
-        var candidate = new CandidateEntity();
-        candidate.setUsername("mateus");
-        candidate.setEmail("mateus@mail.com");
-        candidate.setPassword("123");
+        var dto = CreateCandidateRequestDTO.builder()
+                .name("Mateus")
+                .username("mateus")
+                .email("mateus@mail.com")
+                .password("123")
+                .phone("81999999999")
+                .curriculum("curriculum.pdf")
+                .description("Backend Developer")
+                .build();
+
+        var savedCandidate = CandidateEntity.builder()
+                .name(dto.getName())
+                .username(dto.getUsername())
+                .email(dto.getEmail())
+                .password("encrypted123")
+                .phone(dto.getPhone())
+                .curriculum(dto.getCurriculum())
+                .description(dto.getDescription())
+                .build();
 
         when(repository.findByEmailOrUsername(any(), any())).thenReturn(Optional.empty());
         when(encoder.encode("123")).thenReturn("encrypted123");
-        when(repository.save(any())).thenReturn(candidate);
+        when(repository.save(any())).thenReturn(savedCandidate);
 
-        var result = useCase.execute(candidate);
+        CreateCandidateResponseDTO result = useCase.execute(dto);
 
+        assertEquals("Mateus", result.getName());
         assertEquals("mateus", result.getUsername());
-        verify(encoder).encode("123");
-        verify(repository).save(candidate);
+        assertEquals("mateus@mail.com", result.getEmail());
+        assertEquals("Backend Developer", result.getDescription());
+        assertEquals("curriculum.pdf", result.getCurriculum());
+        assertEquals("81999999999", result.getPhone());
     }
 
     @Test
     public void shouldThrowUserFoundExceptionWhenCandidateAlreadyExists() {
-        var existingCandidate = new CandidateEntity();
-        existingCandidate.setUsername("mateus");
-        existingCandidate.setEmail("mateus@mail.com");
+        var dto = CreateCandidateRequestDTO.builder()
+                .username("mateus")
+                .email("mateus@mail.com")
+                .password("123")
+                .build();
 
-        var candidate = new CandidateEntity();
-        candidate.setUsername("mateus");
-        candidate.setEmail("mateus@mail.com");
-        candidate.setPassword("123");
+        var existingCandidate = CandidateEntity.builder()
+                .username("mateus")
+                .email("mateus@mail.com")
+                .build();
 
         when(repository.findByEmailOrUsername("mateus@mail.com", "mateus"))
                 .thenReturn(Optional.of(existingCandidate));
 
-        assertThrows(UserFoundException.class, () -> useCase.execute(candidate));
+        assertThrows(UserFoundException.class, () -> useCase.execute(dto));
 
-        verify(repository, never()).save(any()); // não deve tentar salvar
-        verify(encoder, never()).encode(any()); // nem codificar senha
+        verify(repository, never()).save(any());
+        verify(encoder, never()).encode(any());
     }
 
     @Test
     public void shouldEncryptPasswordBeforeSavingCandidate() {
-        var candidate = new CandidateEntity();
-        candidate.setUsername("mateus");
-        candidate.setEmail("mateus@mail.com");
-        candidate.setPassword("123");
+        var dto = CreateCandidateRequestDTO.builder()
+                .username("mateus")
+                .email("mateus@mail.com")
+                .password("123")
+                .build();
 
-        when(repository.findByEmailOrUsername("mateus@mail.com", "mateus"))
-                .thenReturn(Optional.empty());
+        when(repository.findByEmailOrUsername(any(), any())).thenReturn(Optional.empty());
         when(encoder.encode("123")).thenReturn("encrypted123");
-        when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0)); // retorna o que foi salvo
 
-        var result = useCase.execute(candidate);
+        when(repository.save(any())).thenAnswer(invocation -> {
+            CandidateEntity candidate = invocation.getArgument(0);
+            assertEquals("encrypted123", candidate.getPassword());
+            return candidate;
+        });
 
-        assertEquals("encrypted123", result.getPassword());
+        CreateCandidateResponseDTO result = useCase.execute(dto);
+
+        assertEquals("mateus", result.getUsername());
+        assertEquals("mateus@mail.com", result.getEmail());
+
         verify(encoder).encode("123");
-        verify(repository).save(candidate);
+        verify(repository).save(any());
     }
-
 }
