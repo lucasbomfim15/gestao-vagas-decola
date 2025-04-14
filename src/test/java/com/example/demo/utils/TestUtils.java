@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class TestUtils {
+
+    public static final String COMPANY_SECRET = "JAVAGAS_@123#COMPANY";
+    public static final String CANDIDATE_SECRET = "JAVAGAS_@123#CANDIDATE";
     private static final ObjectMapper mapper = new ObjectMapper();
 
 

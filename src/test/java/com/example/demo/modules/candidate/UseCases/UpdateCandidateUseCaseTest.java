@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,6 +33,8 @@ class UpdateCandidateUseCaseTest {
     @InjectMocks
     private UpdateCandidateUseCase updateCandidateUseCase;
 
+    private UUID mockedCandidateId;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -40,9 +43,10 @@ class UpdateCandidateUseCaseTest {
         Authentication authentication = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
 
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(new User("mateus", "123", new java.util.ArrayList<>()));
+        mockedCandidateId = UUID.randomUUID();
 
+        when(authentication.getPrincipal()).thenReturn(mockedCandidateId.toString());
+        when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
     }
 
@@ -57,9 +61,9 @@ class UpdateCandidateUseCaseTest {
         dto.setPassword("novaSenha");
 
         CandidateEntity candidate = new CandidateEntity();
-        candidate.setUsername("mateus");
+        candidate.setId(mockedCandidateId); // <-- usa o mesmo ID aqui
 
-        when(candidateRepository.findByUsername("mateus")).thenReturn(Optional.of(candidate));
+        when(candidateRepository.findById(mockedCandidateId)).thenReturn(Optional.of(candidate));
         when(passwordEncoder.encode("novaSenha")).thenReturn("senhaCriptografada");
         when(candidateRepository.save(any())).thenReturn(candidate);
 
@@ -78,7 +82,7 @@ class UpdateCandidateUseCaseTest {
     @Test
     void shouldThrowUserNotFoundExceptionWhenCandidateNotExists() {
         var dto = new UpdateCandidateDTO();
-        when(candidateRepository.findByUsername("mateus")).thenReturn(Optional.empty());
+        when(candidateRepository.findById(mockedCandidateId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> updateCandidateUseCase.execute(dto));
     }
