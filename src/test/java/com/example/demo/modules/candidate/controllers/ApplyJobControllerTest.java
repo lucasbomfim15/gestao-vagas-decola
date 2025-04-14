@@ -109,26 +109,5 @@ class ApplyJobControllerTest {
         assertTrue(result.getResponse().getContentAsString().contains("Job not found"));
     }
 
-//    @Test
-//    void applyJob_ToSameJobTwice_ShouldAllowAndCreateNewApplication() throws Exception {
-//        String requestBody = String.format("{\"jobId\": \"%s\"}", testJob.getId());
-//
-//        // Primeira aplicação
-//        mockMvc.perform(post("/candidate/job/apply")
-//                        .header("Authorization", "Bearer " + validToken)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(requestBody))
-//                .andExpect(status().isOk());
-//
-//        // Segunda aplicação
-//        mockMvc.perform(post("/candidate/job/apply")
-//                        .header("Authorization", "Bearer " + validToken)
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(requestBody))
-//                .andExpect(status().isOk());
-//
-//        // Verificação atualizada
-//        List<AplyJobEntity> applications = aplyJobRepository.findByCandidateIdAndJobId(testCandidate.getId(), testJob.getId());
-//        assertEquals(2, applications.size());
-//    }
+
 }

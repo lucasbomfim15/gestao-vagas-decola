@@ -1,88 +1,96 @@
 package com.example.demo.modules.company.controllers;
 
-import com.example.demo.modules.candidate.exceptions.CompanyNotFoundException;
-import com.example.demo.modules.company.dto.CreateJobRequestDTO;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.example.demo.modules.company.entity.CompanyEntity;
 import com.example.demo.modules.company.repository.CompanyRepository;
+import com.example.demo.modules.company.repository.JobRepository;
 import com.example.demo.utils.TestUtils;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
+import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 public class CreateJobControllerTest {
 
-    private MockMvc mvc;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Autowired
-    private WebApplicationContext context;
+    private JobRepository jobRepository;
 
     @Autowired
     private CompanyRepository companyRepository;
 
-    @BeforeEach
-    public void setup() {
-        mvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(SecurityMockMvcConfigurers.springSecurity())
-                .build();
+    private String token;
+    private UUID companyId;
+
+    @BeforeAll
+    void setUp() {
+        CompanyEntity company = new CompanyEntity();
+        company.setName("Empresa Criadora");
+        company.setEmail("criadora@email.com");
+        company.setPassword("123456");
+        companyRepository.save(company);
+        companyId = company.getId();
+
+        token = TestUtils.generateToken(companyId, TestUtils.COMPANY_SECRET);
     }
 
     @Test
-    public void should_be_able_to_create_a_new_job() throws Exception {
-        var company = CompanyEntity.builder()
-                .description("COMPANY_DESCRIPTION")
-                .email("company@email.com") // Email válido!
-                .password("1234567890")
-                .username("COMPANY_USERNAME")
-                .name("COMPANY_NAME")
-                .build();
-        company = companyRepository.save(company);
+    void should_create_job_when_authenticated_and_valid_data() throws Exception {
+        String requestBody = """
+            {
+              "description": "Backend Developer",
+              "level": "Sênior",
+              "benefits": "Vale transporte, Home office"
+            }
+        """;
 
-        var createdJobDto = CreateJobRequestDTO.builder()
-                .benefits("benefits_test")
-                .description("description_test")
-                .level("level_test")
-                .build();
-
-        var result = mvc.perform(
-                MockMvcRequestBuilders.post("/company/job/")
+        mockMvc.perform(MockMvcRequestBuilders.post("/company/job/")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtils.objectToJson(createdJobDto))
-                        .header("Authorization", TestUtils.generateToken(company.getId(), "JAVAGAS_@123#"))
-        ).andExpect(MockMvcResultMatchers.status().isOk());
-
-        System.out.println(result.andReturn().getResponse().getContentAsString());
+                        .content(requestBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Backend Developer"))
+                .andExpect(jsonPath("$.level").value("Sênior"))
+                .andExpect(jsonPath("$.benefits").value("Vale transporte, Home office"));
     }
 
     @Test
-    public void should_not_be_able_to_create_a_new_job_if_the_company_does_not_found() throws Exception {
-        var createdJobDto = CreateJobRequestDTO.builder()
-                .benefits("benefits_test")
-                .description("description_test")
-                .level("level_test")
-                .build();
+    void should_return_400_when_token_does_not_contain_company_id() throws Exception {
+        String requestBody = """
+            {
+              "description": "Frontend Developer",
+              "level": "Júnior",
+              "benefits": "Vale alimentação"
+            }
+        """;
 
-        mvc.perform(
-                MockMvcRequestBuilders.post("/company/job/")
+        String invalidToken = JWT.create()
+                .withIssuer("javagas")
+                .withClaim("roles", List.of("COMPANY"))
+                .sign(Algorithm.HMAC256(TestUtils.COMPANY_SECRET));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/company/job/")
+                        .header("Authorization", "Bearer " + invalidToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtils.objectToJson(createdJobDto))
-                        .header("Authorization", TestUtils.generateToken(UUID.randomUUID(), "JAVAGAS_@123#"))
-        ).andExpect(MockMvcResultMatchers.status().isBadRequest());
+                        .content(requestBody))
+                .andExpect(status().isBadRequest());
     }
 }
