@@ -2,6 +2,8 @@ package com.example.demo.modules.company.controllers;
 
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
+import com.example.demo.modules.company.dto.CreateCompanyRequestDTO;
+import com.example.demo.modules.company.dto.CreateCompanyResponseDTO;
 import com.example.demo.modules.company.entity.CompanyEntity;
 import com.example.demo.modules.company.repository.CompanyRepository;
 import com.example.demo.modules.company.useCases.CreateCompanyUseCase;
@@ -36,10 +38,10 @@ public class CompanyController {
             }),
             @ApiResponse(responseCode = "400", description = "Company already exists:")
     })
-    public ResponseEntity<Object> createCompany (@Valid  @RequestBody CompanyEntity companyEntity) {
+    public ResponseEntity<CreateCompanyResponseDTO> createCompany (@Valid  @RequestBody CreateCompanyRequestDTO createCompanyRequestDTO) {
 
-            var result = this.createCompanyUseCase.execute(companyEntity);
-            return ResponseEntity.ok().body(result);
+        CreateCompanyResponseDTO responseDTO = this.createCompanyUseCase.execute(createCompanyRequestDTO);
+        return ResponseEntity.ok().body(responseDTO);
 
     }
 

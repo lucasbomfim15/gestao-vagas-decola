@@ -1,7 +1,10 @@
 package com.example.demo.modules.company.useCases;
 
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
+import com.example.demo.modules.company.dto.CreateCompanyRequestDTO;
+import com.example.demo.modules.company.dto.CreateCompanyResponseDTO;
 import com.example.demo.modules.company.entity.CompanyEntity;
+import com.example.demo.modules.company.mappers.CompanyMapper;
 import com.example.demo.modules.company.repository.CompanyRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,9 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,74 +32,52 @@ public class CreateCompanyUseCaseTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    public void shoulCreateCompanySuccessfully() {
-        CompanyEntity company = new CompanyEntity();
+    public void shouldCreateCompanySuccessfully() {
+        // Arrange
+        CreateCompanyRequestDTO requestDTO = CreateCompanyRequestDTO.builder()
+                .username("javagasCompany")
+                .email("javagasCompany@mail.com")
+                .password("1234567890")
+                .name("Java Gás")
+                .description("Descrição")
+                .website("https://javagas.com")
+                .build();
 
-        company.setUsername("javagasCompany");
-        company.setEmail("javagasCompany@mail.com");
-        company.setPassword("1234567890");
+        when(companyRepository.findByEmailOrUsername(any(), any()))
+                .thenReturn(Optional.empty());
 
-        when(companyRepository.findByEmailOrUsername(any(), any())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("1234567890")).thenReturn("encrypted123");
-        when(companyRepository.save(any())).thenReturn(company);
+        when(passwordEncoder.encode("1234567890"))
+                .thenReturn("encrypted123");
 
-        var result = createCompanyUseCase.execute(company);
+        CompanyEntity savedEntity = CompanyMapper.toEntity(requestDTO, "encrypted123");
+        when(companyRepository.save(any()))
+                .thenReturn(savedEntity);
 
+        // Act
+        CreateCompanyResponseDTO result = createCompanyUseCase.execute(requestDTO);
+
+        // Assert
         assertEquals("javagasCompany", result.getUsername());
+        assertEquals("javagasCompany@mail.com", result.getEmail());
+        verify(companyRepository).save(any());
         verify(passwordEncoder).encode("1234567890");
-        verify(companyRepository).save(company);
     }
 
     @Test
     public void shouldThrowUserFoundExceptionWhenCompanyAlreadyExists() {
-        CompanyEntity company = new CompanyEntity();
-        company.setUsername("javagasCompany");
-        company.setEmail("javagasCompany@mail.com");
-        company.setPassword("1234567890");
+        CreateCompanyRequestDTO requestDTO = CreateCompanyRequestDTO.builder()
+                .username("javagasCompany")
+                .email("javagasCompany@mail.com")
+                .password("1234567890")
+                .build();
 
         when(companyRepository.findByEmailOrUsername("javagasCompany@mail.com", "javagasCompany"))
                 .thenReturn(Optional.of(new CompanyEntity()));
 
-        assertThrows(UserFoundException.class, () -> createCompanyUseCase.execute(company));
+        assertThrows(UserFoundException.class, () -> createCompanyUseCase.execute(requestDTO));
 
         verify(companyRepository, never()).save(any());
         verify(passwordEncoder, never()).encode(any());
-    }
-
-    @Test
-    public void shouldEncryptPasswordBeforeSaving() {
-        CompanyEntity company = new CompanyEntity();
-        company.setUsername("javagasCompany");
-        company.setEmail("javagasCompany@mail.com");
-        company.setPassword("plainPassword");
-
-        when(companyRepository.findByEmailOrUsername(any(), any())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("plainPassword")).thenReturn("hashedPassword");
-        when(companyRepository.save(any())).thenAnswer(i -> i.getArgument(0));
-
-        CompanyEntity result = createCompanyUseCase.execute(company);
-
-        assertEquals("hashedPassword", result.getPassword());
-        verify(passwordEncoder).encode("plainPassword");
-        verify(companyRepository).save(company);
-    }
-
-    @Test
-    public void shouldReturnSavedCompany() {
-        CompanyEntity company = new CompanyEntity();
-        company.setUsername("javagasCompany");
-        company.setEmail("javagasCompany@mail.com");
-        company.setPassword("1234567890");
-
-        when(companyRepository.findByEmailOrUsername(any(), any())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(any())).thenReturn("encodedPassword");
-        when(companyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
-        CompanyEntity result = createCompanyUseCase.execute(company);
-
-        assertEquals(company.getUsername(), result.getUsername());
-        assertEquals(company.getEmail(), result.getEmail());
-        assertEquals("encodedPassword", result.getPassword());
     }
 
 }

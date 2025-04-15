@@ -1,7 +1,10 @@
 package com.example.demo.modules.company.useCases;
 
 import com.example.demo.modules.candidate.exceptions.UserFoundException;
+import com.example.demo.modules.company.dto.CreateCompanyRequestDTO;
+import com.example.demo.modules.company.dto.CreateCompanyResponseDTO;
 import com.example.demo.modules.company.entity.CompanyEntity;
+import com.example.demo.modules.company.mappers.CompanyMapper;
 import com.example.demo.modules.company.repository.CompanyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,14 +19,17 @@ public class CreateCompanyUseCase {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public CompanyEntity execute(CompanyEntity companyEntity) {
-        this.companyRepository.findByEmailOrUsername(companyEntity.getEmail(), companyEntity.getUsername()).ifPresent((company) -> {
+    public CreateCompanyResponseDTO execute(CreateCompanyRequestDTO createCompanyRequestDTO) {
+        this.companyRepository.findByEmailOrUsername(createCompanyRequestDTO.getEmail(), createCompanyRequestDTO.getUsername()).ifPresent((company) -> {
                 throw new UserFoundException();
         });
 
-        var password = passwordEncoder.encode(companyEntity.getPassword());
-        companyEntity.setPassword(password);
+        var password = passwordEncoder.encode(createCompanyRequestDTO.getPassword());
 
-        return this.companyRepository.save(companyEntity);
+        CompanyEntity companyEntity = CompanyMapper.toEntity(createCompanyRequestDTO, password);
+
+        CompanyEntity savedEntity = companyRepository.save(companyEntity);
+
+        return CompanyMapper.toResponseDTO(savedEntity);
     }
 }
