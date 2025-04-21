@@ -110,7 +110,7 @@ public class CandidateController {
             @ApiResponse(responseCode = "400", description = "Invalid data or user not authenticated")
     })
     @SecurityRequirement(name = "jwt_auth")
-    public ResponseEntity<Object> update(@Valid @RequestBody UpdateCandidateDTO dto) {
+    public ResponseEntity<UpdateCandidateResponseDTO> update(@Valid @RequestBody UpdateCandidateRequestDTO dto) {
 
             var result = this.updateCandidateUseCase.execute(dto);
             return ResponseEntity.ok().body(result);

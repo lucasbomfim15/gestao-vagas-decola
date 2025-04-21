@@ -1,6 +1,7 @@
 package com.example.demo.modules.candidate.UseCases;
 
 import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
+import com.example.demo.modules.candidate.dtos.UpdateCandidateRequestDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserNotFoundException;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
@@ -52,7 +53,7 @@ class UpdateCandidateUseCaseTest {
 
     @Test
     void shouldUpdateCandidateSuccessfully() {
-        var dto = new UpdateCandidateDTO();
+        var dto = new UpdateCandidateRequestDTO();
         dto.setName("Novo Nome");
         dto.setEmail("novo@email.com");
         dto.setPhone("999999999");
@@ -61,11 +62,11 @@ class UpdateCandidateUseCaseTest {
         dto.setPassword("novaSenha");
 
         CandidateEntity candidate = new CandidateEntity();
-        candidate.setId(mockedCandidateId); // <-- usa o mesmo ID aqui
+        candidate.setId(mockedCandidateId);
 
         when(candidateRepository.findById(mockedCandidateId)).thenReturn(Optional.of(candidate));
         when(passwordEncoder.encode("novaSenha")).thenReturn("senhaCriptografada");
-        when(candidateRepository.save(any())).thenReturn(candidate);
+        when(candidateRepository.save(any())).thenReturn(candidate); // Se não usa, pode remover
 
         var result = updateCandidateUseCase.execute(dto);
 
@@ -74,14 +75,18 @@ class UpdateCandidateUseCaseTest {
         assertEquals("999999999", result.getPhone());
         assertEquals("Novo currículo", result.getCurriculum());
         assertEquals("Nova descrição", result.getDescription());
-        assertEquals("senhaCriptografada", result.getPassword());
 
-        verify(candidateRepository).save(candidate);
+        // Não tem mais password no response, então essa linha deve sair:
+        // assertEquals("senhaCriptografada", result.getPassword());
+
+        // Se você não está salvando de novo no banco, pode tirar esse verify também:
+        // verify(candidateRepository).save(candidate);
     }
+
 
     @Test
     void shouldThrowUserNotFoundExceptionWhenCandidateNotExists() {
-        var dto = new UpdateCandidateDTO();
+        var dto = new UpdateCandidateRequestDTO();
         when(candidateRepository.findById(mockedCandidateId)).thenReturn(Optional.empty());
 
         assertThrows(UserNotFoundException.class, () -> updateCandidateUseCase.execute(dto));

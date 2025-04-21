@@ -1,7 +1,9 @@
 package com.example.demo.modules.candidate.controllers;
 
 import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
+import com.example.demo.modules.candidate.dtos.UpdateCandidateRequestDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
+import com.example.demo.modules.candidate.repository.AplyJobRepository;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
 import com.example.demo.utils.TestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +37,9 @@ public class UpdateCandidateControllerTest {
     private CandidateRepository candidateRepository;
 
     @Autowired
+    private AplyJobRepository aplyJobRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -45,6 +50,7 @@ public class UpdateCandidateControllerTest {
 
     @BeforeEach
     void setup() {
+        aplyJobRepository.deleteAll(); // <-- Deleta antes de candidates
         candidateRepository.deleteAll();
 
         CandidateEntity candidate = new CandidateEntity();
@@ -61,7 +67,7 @@ public class UpdateCandidateControllerTest {
 
     @Test
     void should_be_able_to_update_candidate_profile() throws Exception {
-        UpdateCandidateDTO dto = new UpdateCandidateDTO();
+        UpdateCandidateRequestDTO dto = new UpdateCandidateRequestDTO();
         dto.setName("João Atualizado");
         dto.setEmail("joao.novo@email.com");
         dto.setPassword("nova_senha");

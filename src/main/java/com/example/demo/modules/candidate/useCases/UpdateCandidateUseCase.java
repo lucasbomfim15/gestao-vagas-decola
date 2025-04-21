@@ -1,8 +1,11 @@
 package com.example.demo.modules.candidate.useCases;
 
 import com.example.demo.modules.candidate.dtos.UpdateCandidateDTO;
+import com.example.demo.modules.candidate.dtos.UpdateCandidateRequestDTO;
+import com.example.demo.modules.candidate.dtos.UpdateCandidateResponseDTO;
 import com.example.demo.modules.candidate.entity.CandidateEntity;
 import com.example.demo.modules.candidate.exceptions.UserNotFoundException;
+import com.example.demo.modules.candidate.mappers.CandidateMapper;
 import com.example.demo.modules.candidate.repository.CandidateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +24,7 @@ public class UpdateCandidateUseCase {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public CandidateEntity execute(UpdateCandidateDTO dto) {
+    public UpdateCandidateResponseDTO execute(UpdateCandidateRequestDTO dto) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         // Se o principal for String (como no teste), ele é o ID
@@ -53,6 +56,6 @@ public class UpdateCandidateUseCase {
             candidate.setPassword(passwordEncoder.encode(dto.getPassword()));
         }
 
-        return candidateRepository.save(candidate);
+        return CandidateMapper.updateToResponseDTO(candidate);
     }
 }
